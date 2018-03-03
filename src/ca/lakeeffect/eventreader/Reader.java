@@ -24,7 +24,13 @@ public class Reader {
 		
 		ArrayList<Event> events = new ArrayList<Event>();
 		while(scanner.hasNextLine()){
-			String[] line = scanner.nextLine().split(",");
+			String fullLine = scanner.nextLine();
+			String[] line = fullLine.split(",");
+			
+			if(line.length == 0 || fullLine.contains(":")) {
+				continue;
+			}
+			
 			events.add(new Event(Integer.parseInt(line[1]), Integer.parseInt(line[2]), Long.parseLong(line[3]), Integer.parseInt(line[4])));
 			events.get(events.size()-1).print();
 		}
