@@ -27,7 +27,7 @@ public class Reader {
 			String fullLine = scanner.nextLine();
 			String[] line = fullLine.split(",");
 			
-			if(line.length == 0 || fullLine.contains(":")) {
+			if(line.length < 5 || fullLine.contains(":")) {
 				continue;
 			}
 			
