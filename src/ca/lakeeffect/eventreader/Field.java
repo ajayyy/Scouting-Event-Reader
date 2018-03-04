@@ -43,6 +43,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	InfoPanel info = new InfoPanel();
 	
 	Point[] locations = {
+			new Point(500,800),
 			new Point(105,65),
 			new Point(120,360),
 			new Point(105,839),
@@ -64,6 +65,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 //	};
 	
 	String[] locationNames = {
+			"Ground",
 			"Top Red Portal",
 			"Red Vault",
 			"Bottom Red Portal",
@@ -137,7 +139,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		}
 		Graphics2D g2d = (Graphics2D) g;
 		for(Path p : paths){
-			if(p.startLocation == -1 || p.endLocation == -1) continue;
+//			if(p.startLocation == -1 || p.endLocation == -1) continue;
 			g2d.setStroke(new BasicStroke((int) (p.count/2)+1));
 			g2d.drawLine((int)(locations[p.startLocation].x*scale), (int)(locations[p.startLocation].y*scale), (int)( locations[p.endLocation].x*scale), (int)( locations[p.endLocation].y*scale));
 		}
