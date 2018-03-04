@@ -31,7 +31,7 @@ public class Reader {
 				continue;
 			}
 			
-			events.add(new Event(Integer.parseInt(line[1]), Integer.parseInt(line[2]), Long.parseLong(line[3]), Integer.parseInt(line[4])));
+			events.add(new Event(Integer.parseInt(line[0]), Integer.parseInt(line[1]), Integer.parseInt(line[2]), Long.parseLong(line[3]), Integer.parseInt(line[4])));
 			events.get(events.size()-1).print();
 		}
 		
@@ -45,9 +45,13 @@ public class Reader {
 				}
 			}
 			if(!exists){
-				paths.add(new Path(events.get(i-1), events.get(i)));
+				Event from = events.get(i-1);
+				Event to = events.get(i);
+				
+				if(from.match == to.match) {
+					paths.add(new Path(from, to));
+				}
 			}
-			
 			
 		}
 		for(Path p : paths){
@@ -58,12 +62,14 @@ public class Reader {
 }
 
 class Event{
+	int match;
 	int location;
 	int action;
 	long time;
 	int meta;
 	
-	public Event(int action, int location, long time, int meta){
+	public Event(int match, int action, int location, long time, int meta){
+		this.match = match;
 		this.location = location;
 		this.action = action;
 		this.time = time;
