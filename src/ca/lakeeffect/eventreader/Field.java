@@ -3,6 +3,7 @@ package ca.lakeeffect.eventreader;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -137,6 +138,13 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		for(Point p : locations){
 			g.fillRect((int) (p.x*scale)-5, (int) (p.y*scale)-5, 10, 10);
 		}
+		
+		g.setColor(Color.white);
+		g.setFont(g.getFont().deriveFont(Font.PLAIN, ((int) (field.getHeight()*scale)/4)));
+		g.drawString(window.getTitle()+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(window.getTitle())/2, ((int) (field.getHeight()*scale / 16 * 15)));
+		
+		g.setColor(Color.green);
+		
 		Graphics2D g2d = (Graphics2D) g;
 		for(Path p : paths){
 //			if(p.startLocation == -1 || p.endLocation == -1) continue;
@@ -160,6 +168,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 			
 			g.drawImage(infoPanelImage, x, y, null);
 		}
+		
 	}
 
 	@Override
