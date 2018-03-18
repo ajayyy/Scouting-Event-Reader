@@ -227,14 +227,6 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 			times[i] = 0;
 		}
 		
-		if (e.getKeyCode() == KeyEvent.VK_S) {
-			for(Path path : paths) {
-				System.out.println((path.endLocation+1) + (path.startLocation+1) * 15);
-				times[(path.endLocation+1) + (path.startLocation+1) * 15] = path.averageTime;
-//				System.out.println(window.getTitle() + "," + path.startLocation + "," + path.endLocation + "," + path.averageTime);
-			}
-		}
-		
 		System.out.print("Robot Number,");
 		for(int i=0;i<times.length;i++) {
 			System.out.print(i/15 + " => " + (i % 15) + ",");
