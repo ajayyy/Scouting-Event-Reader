@@ -6,29 +6,39 @@ import java.awt.Choice;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
-public class Selection extends JFrame implements MouseListener, ActionListener{
+public class Selection extends JFrame implements MouseListener, ActionListener, KeyListener {
 
 	private static final long serialVersionUID = 2L;
 
 	private JPanel contentPane;
 	
 	Choice choice;
+	
+	JTextArea robotSearch;
+	private JSplitPane inputSplitPane;
+	
 	Button selectRobot;
 	DirectoryChooser dirChooser;
 	private Button selectDir;
 	String directory = "C:\\Users\\Ajay\\git\\Scouting-Event-Reader\\src\\ca\\lakeeffect\\eventreader\\EventData";
 	private JSplitPane splitPane;
 	private JLabel dirLabel;
+	
+	ArrayList<String> robotNumbers = new ArrayList<String>();
 
 	/**
 	 * Launch the application.
@@ -56,12 +66,24 @@ public class Selection extends JFrame implements MouseListener, ActionListener{
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
-		setSize(260, 120);
+		setSize(260, 150);
 		setResizable(false);
 		setTitle("Event Viewer");
 		
-		choice  = new Choice();
-		contentPane.add(choice, BorderLayout.CENTER);
+		
+		inputSplitPane = new JSplitPane();
+		inputSplitPane.setDividerSize(0);
+		inputSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		inputSplitPane.setDividerLocation(25);
+		contentPane.add(inputSplitPane, BorderLayout.CENTER);
+		
+		robotSearch = new JTextArea();
+		robotSearch.addKeyListener(this);
+		
+		choice = new Choice();
+		
+		inputSplitPane.setTopComponent(robotSearch);
+		inputSplitPane.setBottomComponent(choice);
 		
 		selectRobot = new Button("Select");
 		contentPane.add(selectRobot, BorderLayout.SOUTH);
@@ -91,11 +113,14 @@ public class Selection extends JFrame implements MouseListener, ActionListener{
 			frame.setVisible(true);
 		}
 		if(e.getSource() == selectRobot){
-			String file = directory+"\\"+choice.getSelectedItem()+".csv";
-			System.out.println(file);		
-			new Field(choice.getSelectedItem(), 640, 480, file);
-
+			selectRobot();
 		}
+	}
+	
+	public void selectRobot() {
+		String file = directory+"\\"+choice.getSelectedItem()+".csv";
+		System.out.println(file);		
+		new Field(choice.getSelectedItem(), 640, 480, file);
 	}
 
 	public void changeDir(String directory){
@@ -108,37 +133,72 @@ public class Selection extends JFrame implements MouseListener, ActionListener{
 		for(String c : children){
 			if(c.endsWith(".csv")){
 				choice.add(c.replace(".csv", ""));
+				robotNumbers.add(c.replace(".csv", ""));
 			}
 		}
 	}
 	
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		System.out.println();
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+			robotSearch.setText(robotSearch.getText().substring(0, robotSearch.getText().length() - 1));
+			
+			selectRobot();
+
+		}
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		
+		String fullSearch = robotSearch.getText();
+		
+		if(isNumber(e.getKeyChar() + "")) {
+			fullSearch += e.getKeyChar();
+		} else if(e.getKeyChar() == '\n') {
+			return;
+		}
+		
+		choice.removeAll();
+		for(String robotNumber : robotNumbers){
+			if(robotNumber.contains(fullSearch)) {
+				choice.add(robotNumber);
+			}
+		}
+	}
+	
+	public boolean isNumber(String string) {
+		return "1234567890".contains(string);
 	}
 
 }
