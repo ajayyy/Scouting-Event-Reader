@@ -29,6 +29,7 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 	
 	//contains two search panels
 	private JSplitPane inputSplitPaneSplitPane;
+	private JSplitPane inputSplitPaneSplitPaneSplitPane;
 	
 	Choice choice;
 	JTextArea robotSearch;
@@ -37,6 +38,10 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 	Choice choice2;
 	JTextArea robotSearch2;
 	private JSplitPane inputSplitPane2;
+	
+	Choice choice3;
+	JTextArea robotSearch3;
+	private JSplitPane inputSplitPane3;
 	
 	Button selectRobot;
 	DirectoryChooser dirChooser;
@@ -81,6 +86,13 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 		inputSplitPaneSplitPane.setDividerSize(0);
 		inputSplitPaneSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		inputSplitPaneSplitPane.setDividerLocation(50);
+		
+		inputSplitPaneSplitPaneSplitPane = new JSplitPane();
+		inputSplitPaneSplitPaneSplitPane.setDividerSize(0);
+		inputSplitPaneSplitPaneSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		inputSplitPaneSplitPaneSplitPane.setDividerLocation(50);
+		
+		inputSplitPaneSplitPaneSplitPane.setBottomComponent(inputSplitPane);
 		
 		inputSplitPane = new JSplitPane();
 		inputSplitPane.setDividerSize(0);
@@ -147,9 +159,24 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 	}
 	
 	public void selectRobot() {
-		String file = directory+"\\"+choice.getSelectedItem()+".csv";
-		System.out.println(file);		
-		new Field(Integer.parseInt(choice.getSelectedItem()), 640, 480, file);
+
+		int amountChosen = 1;
+		if(!choice2.getSelectedItem().equals("None")) {
+			amountChosen += 1;
+		}
+		
+		int[] choices = new int[amountChosen];
+		choices[0] = Integer.parseInt(choice.getSelectedItem());
+		if(amountChosen > 1) {
+			choices[1] = Integer.parseInt(choice2.getSelectedItem());
+		}
+		
+		String[] files = new String[amountChosen];
+		for(int i=0; i < files.length; i++) {
+			files[i] = directory+"\\"+choices[i]+".csv";
+		}
+		
+		new Field(choices, 640, 480, files);
 	}
 
 	public void changeDir(String directory){
@@ -204,7 +231,16 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 	@Override
 	public void keyReleased(KeyEvent e) {
 		if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-			robotSearch.setText(robotSearch.getText().substring(0, robotSearch.getText().length() - 1));
+			if(robotSearch.hasFocus()) {
+				robotSearch.setText(robotSearch.getText().substring(0, robotSearch.getText().length() - 1));
+				
+				robotSearch2.requestFocus();
+			} else if(robotSearch2.hasFocus()) {
+				robotSearch2.setText(robotSearch2.getText().substring(0, robotSearch2.getText().length() - 1));
+				
+				robotSearch.requestFocus();
+				
+			}
 			
 			selectRobot();
 		}

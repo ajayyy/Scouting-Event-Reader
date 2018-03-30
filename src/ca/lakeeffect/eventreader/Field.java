@@ -33,11 +33,11 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	
 	private JFrame window;
 	
-	Reader reader;
+	Reader[] readers;
 	
 	BufferedImage field;
 	
-	Path[] paths;
+	Path[][] paths;
 	
 	float scale;
 	
@@ -66,9 +66,9 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 //	};
 	
 	Color[] colors = {
-			Color.green,
-			Color.red,
-			Color.blue
+			new Color(0, 255, 0, 80),
+			new Color(255, 0, 0, 80),
+			new Color(0, 0, 255, 80)
 	};
 	
 	String[] locationNames = {
@@ -94,22 +94,34 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	boolean hovering;
 	int mousex,mousey;
 	
-	int robotNumber;
+	int[] robotNumbers;
 	
-	public Field(int robotNumber, int width, int height, String file){
+	public Field(int[] robotNumbers, int width, int height, String[] files){
 		setBounds(0, 0, 5000, 5000);
-		this.robotNumber = robotNumber;
-		this.title = robotNumber + "";
+		this.robotNumbers = robotNumbers;
+		this.title = "";
+		for (int i=0;i<robotNumbers.length;i++) {
+			if(i != 0) {
+				this.title += ", ";
+			}
+			this.title += robotNumbers[i];
+		}
 		this.width = width;
 		this.height = height;
 		init();
 		window.setVisible(true);
-		reader = new Reader();
-		changeRobot(file);
+		readers = new Reader[files.length];
+		for(int i=0; i < files.length; i++) {
+			readers[i] = new Reader();
+		}
+		changeRobot(files);
 	}
 	
-	public void changeRobot(String path){
-		paths = reader.read(path);
+	public void changeRobot(String[] paths){
+		this.paths = new Path[paths.length][];
+		for(int i=0; i < paths.length; i++) {
+			this.paths[i] = readers[i].read(paths[i]);
+		}
 	}
 
 	private void init() {
@@ -143,7 +155,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		scale = (float) (window.getWidth()/(field.getWidth()*1.00));
 		//I know it's redundant, but its there for the future
 		g.drawImage(field, 0, 0, (int) (field.getWidth()*scale), (int) (field.getHeight()*scale), null);
-		g.setColor(colors[0]);
+		g.setColor(Color.yellow);
 		for(Point p : locations){
 			g.fillRect((int) (p.x*scale)-5, (int) (p.y*scale)-5, 10, 10);
 		}
@@ -152,13 +164,15 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		g.setFont(g.getFont().deriveFont(Font.PLAIN, ((int) (field.getHeight()*scale)/4)));
 		g.drawString(window.getTitle()+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(window.getTitle())/2, ((int) (field.getHeight()*scale / 16 * 15)));
 		
-		g.setColor(colors[0]);
-		
 		Graphics2D g2d = (Graphics2D) g;
-		for(Path p : paths){
-//			if(p.startLocation == -1 || p.endLocation == -1) continue;
-			g2d.setStroke(new BasicStroke((int) (p.count/2)+1));
-			g2d.drawLine((int)(locations[p.startLocation].x*scale), (int)(locations[p.startLocation].y*scale), (int)( locations[p.endLocation].x*scale), (int)( locations[p.endLocation].y*scale));
+		for(int i = 0; i < paths.length; i++){
+			
+			g.setColor(colors[i]);
+			
+			for(Path p : paths[i]){
+				g2d.setStroke(new BasicStroke((int) (p.count/2)+1));
+				g2d.drawLine((int)(locations[p.startLocation].x*scale), (int)(locations[p.startLocation].y*scale), (int)( locations[p.endLocation].x*scale), (int)( locations[p.endLocation].y*scale));
+			}
 		}
 		
 		if(hovering){
@@ -203,28 +217,28 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		info.clearData();
 		Point mouse = new Point((int)(e.getX()/scale), (int)(e.getY()/scale));
 		boolean hovering = false;
-		for(Path p : paths){
-//			System.out.println(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse))));
-			if(p.startLocation == -1 || p.endLocation==-1) continue;
-			if(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse)))<15){
-//				System.out.println(locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
-				hovering = true;
-				info.addData(new String[] {"Count","Avg. Time","Avg/Match"}, new double[] {p.count, p.averageTime, p.count/1}, new String[] {"","s",""}, locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
-			}
-		}
+//		for(Path p : paths){
+////			System.out.println(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse))));
+//			if(p.startLocation == -1 || p.endLocation==-1) continue;
+//			if(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse)))<15){
+////				System.out.println(locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
+//				hovering = true;
+//				info.addData(new String[] {"Count","Avg. Time","Avg/Match"}, new double[] {p.count, p.averageTime, p.count/1}, new String[] {"","s",""}, locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
+//			}
+//		}
 		for(int i = 0; i < locations.length; i++){
 			Point l = new Point((int)(locations[i].x*scale),(int) (locations[i].y*scale));
 			if(l.distance(e.getX(), e.getY())<15){
 				hovering=true;
 				int scoreSuccess = 0, scoreFail = 0, pickupSuccess = 0, pickupFail = 0;
-				for(Path p : paths){
-					if(p.endLocation == i){
-						scoreSuccess+=p.scoreSuccess;
-						scoreFail+=p.scoreFail;
-						pickupSuccess+=p.pickupSuccess;
-						pickupFail+=p.pickupFail;
-					}
-				}
+//				for(Path p : paths){
+//					if(p.endLocation == i){
+//						scoreSuccess+=p.scoreSuccess;
+//						scoreFail+=p.scoreFail;
+//						pickupSuccess+=p.pickupSuccess;
+//						pickupFail+=p.pickupFail;
+//					}
+//				}
 				double scorePercent = 0, pickupPercent = 0;
 				if(scoreSuccess+scoreFail > 0) scorePercent = ((double) scoreSuccess/(scoreSuccess+scoreFail))*100;
 				if(pickupSuccess+pickupFail > 0) pickupPercent = ((double) pickupSuccess/(pickupSuccess+pickupFail))*100;
