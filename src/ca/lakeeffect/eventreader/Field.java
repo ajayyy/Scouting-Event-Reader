@@ -98,6 +98,11 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	
 	public Field(int[] robotNumbers, int width, int height, String[] files){
 		setBounds(0, 0, 5000, 5000);
+		
+		if(robotNumbers.length == 1) {
+			colors[0] = new Color(colors[0].getRed(), colors[0].getGreen(), colors[0].getBlue(), 255);
+		}
+		
 		this.robotNumbers = robotNumbers;
 		this.title = "";
 		for (int i=0;i<robotNumbers.length;i++) {
@@ -217,28 +222,32 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		info.clearData();
 		Point mouse = new Point((int)(e.getX()/scale), (int)(e.getY()/scale));
 		boolean hovering = false;
-//		for(Path p : paths){
-////			System.out.println(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse))));
-//			if(p.startLocation == -1 || p.endLocation==-1) continue;
-//			if(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse)))<15){
-////				System.out.println(locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
-//				hovering = true;
-//				info.addData(new String[] {"Count","Avg. Time","Avg/Match"}, new double[] {p.count, p.averageTime, p.count/1}, new String[] {"","s",""}, locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
-//			}
-//		}
+		if(robotNumbers.length == 1) {
+			for(Path p : paths[0]){
+//				System.out.println(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse))));
+				if(p.startLocation == -1 || p.endLocation==-1) continue;
+				if(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse)))<15){
+//					System.out.println(locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
+					hovering = true;
+					info.addData(new String[] {"Count","Avg. Time","Avg/Match"}, new double[] {p.count, p.averageTime, p.count/1}, new String[] {"","s",""}, locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
+				}
+			}
+		}
 		for(int i = 0; i < locations.length; i++){
 			Point l = new Point((int)(locations[i].x*scale),(int) (locations[i].y*scale));
 			if(l.distance(e.getX(), e.getY())<15){
 				hovering=true;
 				int scoreSuccess = 0, scoreFail = 0, pickupSuccess = 0, pickupFail = 0;
-//				for(Path p : paths){
-//					if(p.endLocation == i){
-//						scoreSuccess+=p.scoreSuccess;
-//						scoreFail+=p.scoreFail;
-//						pickupSuccess+=p.pickupSuccess;
-//						pickupFail+=p.pickupFail;
-//					}
-//				}
+				if(robotNumbers.length == 1) {
+					for(Path p : paths[0]){
+						if(p.endLocation == i){
+							scoreSuccess+=p.scoreSuccess;
+							scoreFail+=p.scoreFail;
+							pickupSuccess+=p.pickupSuccess;
+							pickupFail+=p.pickupFail;
+						}
+					}
+				}
 				double scorePercent = 0, pickupPercent = 0;
 				if(scoreSuccess+scoreFail > 0) scorePercent = ((double) scoreSuccess/(scoreSuccess+scoreFail))*100;
 				if(pickupSuccess+pickupFail > 0) pickupPercent = ((double) pickupSuccess/(pickupSuccess+pickupFail))*100;
@@ -289,11 +298,13 @@ class InfoPanel{
 	
 	NumberFormat formatter = new DecimalFormat("#0.00");     
 	
+	Color background = new Color(220, 220, 220, 255);
+	
 	public BufferedImage render(){
 		height = labels.size()*15+5;
 		BufferedImage panel = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = panel.createGraphics();
-		g.setColor(Color.lightGray);
+		g.setColor(background);
 		g.fillRect(0, 0, width, height);
 		g.setColor(Color.black);
 		for(int i = 0; i < labels.size(); i++){
