@@ -65,6 +65,12 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 //			new Point(100, 200),
 //	};
 	
+	Color[] colors = {
+			Color.green,
+			Color.red,
+			Color.blue
+	};
+	
 	String[] locationNames = {
 			"Ground",
 			"Top Red Portal",
@@ -88,9 +94,12 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	boolean hovering;
 	int mousex,mousey;
 	
-	public Field(String title, int width, int height, String file){
+	int robotNumber;
+	
+	public Field(int robotNumber, int width, int height, String file){
 		setBounds(0, 0, 5000, 5000);
-		this.title = title;
+		this.robotNumber = robotNumber;
+		this.title = robotNumber + "";
 		this.width = width;
 		this.height = height;
 		init();
@@ -134,7 +143,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		scale = (float) (window.getWidth()/(field.getWidth()*1.00));
 		//I know it's redundant, but its there for the future
 		g.drawImage(field, 0, 0, (int) (field.getWidth()*scale), (int) (field.getHeight()*scale), null);
-		g.setColor(Color.green);
+		g.setColor(colors[0]);
 		for(Point p : locations){
 			g.fillRect((int) (p.x*scale)-5, (int) (p.y*scale)-5, 10, 10);
 		}
@@ -143,7 +152,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		g.setFont(g.getFont().deriveFont(Font.PLAIN, ((int) (field.getHeight()*scale)/4)));
 		g.drawString(window.getTitle()+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(window.getTitle())/2, ((int) (field.getHeight()*scale / 16 * 15)));
 		
-		g.setColor(Color.green);
+		g.setColor(colors[0]);
 		
 		Graphics2D g2d = (Graphics2D) g;
 		for(Path p : paths){

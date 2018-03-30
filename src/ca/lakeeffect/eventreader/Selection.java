@@ -26,10 +26,17 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 
 	private JPanel contentPane;
 	
-	Choice choice;
 	
+	//contains two search panels
+	private JSplitPane inputSplitPaneSplitPane;
+	
+	Choice choice;
 	JTextArea robotSearch;
 	private JSplitPane inputSplitPane;
+	
+	Choice choice2;
+	JTextArea robotSearch2;
+	private JSplitPane inputSplitPane2;
 	
 	Button selectRobot;
 	DirectoryChooser dirChooser;
@@ -66,16 +73,20 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
-		setSize(260, 150);
+		setSize(260, 195);
 		setResizable(false);
 		setTitle("Event Viewer");
 		
+		inputSplitPaneSplitPane = new JSplitPane();
+		inputSplitPaneSplitPane.setDividerSize(0);
+		inputSplitPaneSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		inputSplitPaneSplitPane.setDividerLocation(50);
 		
 		inputSplitPane = new JSplitPane();
 		inputSplitPane.setDividerSize(0);
 		inputSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		inputSplitPane.setDividerLocation(25);
-		contentPane.add(inputSplitPane, BorderLayout.CENTER);
+		inputSplitPaneSplitPane.setTopComponent(inputSplitPane);
 		
 		robotSearch = new JTextArea();
 		robotSearch.addKeyListener(this);
@@ -84,6 +95,24 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 		
 		inputSplitPane.setTopComponent(robotSearch);
 		inputSplitPane.setBottomComponent(choice);
+		
+		//second search box
+		
+		inputSplitPane2 = new JSplitPane();
+		inputSplitPane2.setDividerSize(0);
+		inputSplitPane2.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		inputSplitPane2.setDividerLocation(25);
+		inputSplitPaneSplitPane.setBottomComponent(inputSplitPane2);
+
+		contentPane.add(inputSplitPaneSplitPane, BorderLayout.CENTER);
+		
+		robotSearch2 = new JTextArea();
+		robotSearch2.addKeyListener(this);
+		
+		choice2 = new Choice();
+		
+		inputSplitPane2.setTopComponent(robotSearch2);
+		inputSplitPane2.setBottomComponent(choice2);
 		
 		selectRobot = new Button("Select");
 		contentPane.add(selectRobot, BorderLayout.SOUTH);
@@ -120,7 +149,7 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 	public void selectRobot() {
 		String file = directory+"\\"+choice.getSelectedItem()+".csv";
 		System.out.println(file);		
-		new Field(choice.getSelectedItem(), 640, 480, file);
+		new Field(Integer.parseInt(choice.getSelectedItem()), 640, 480, file);
 	}
 
 	public void changeDir(String directory){
@@ -130,10 +159,14 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 		File dir = new File(directory);
 		String[] children = dir.list();
 		choice.removeAll();
+		choice2.removeAll();
+		choice2.add("None");
 		for(String c : children){
 			if(c.endsWith(".csv")){
 				choice.add(c.replace(".csv", ""));
 				robotNumbers.add(c.replace(".csv", ""));
+				
+				choice2.add(c.replace(".csv", ""));
 			}
 		}
 	}
@@ -174,6 +207,21 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 			robotSearch.setText(robotSearch.getText().substring(0, robotSearch.getText().length() - 1));
 			
 			selectRobot();
+		}
+		
+		if(e.getKeyCode() == KeyEvent.VK_TAB) {
+			if(robotSearch.hasFocus()) {
+				robotSearch.setText(robotSearch.getText().substring(0, robotSearch.getText().length() - 1));
+				
+				robotSearch2.requestFocus();
+			} else if(robotSearch2.hasFocus()) {
+				robotSearch2.setText(robotSearch2.getText().substring(0, robotSearch2.getText().length() - 1));
+				
+				robotSearch.requestFocus();
+				
+			}
+			
+			keyTyped(e);
 
 		}
 	}
@@ -181,7 +229,16 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 	@Override
 	public void keyTyped(KeyEvent e) {
 		
-		String fullSearch = robotSearch.getText();
+		String fullSearch = "";
+		Choice currentChoice = null;
+		
+		if (e.getSource() == robotSearch) {
+			fullSearch = robotSearch.getText();
+			currentChoice = choice;
+		} else if(e.getSource() == robotSearch2) {
+			fullSearch = robotSearch2.getText();
+			currentChoice = choice2;
+		}
 		
 		if(isNumber(e.getKeyChar() + "")) {
 			fullSearch += e.getKeyChar();
@@ -189,10 +246,13 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 			return;
 		}
 		
-		choice.removeAll();
+		currentChoice.removeAll();
+		if(fullSearch.equals("") && currentChoice != choice) {
+			currentChoice.add("None");
+		}
 		for(String robotNumber : robotNumbers){
 			if(robotNumber.contains(fullSearch)) {
-				choice.add(robotNumber);
+				currentChoice.add(robotNumber);
 			}
 		}
 	}
