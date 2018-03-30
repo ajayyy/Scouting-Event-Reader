@@ -13,6 +13,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -25,7 +26,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
-public class Field extends JComponent implements MouseMotionListener, ActionListener, KeyListener{
+public class Field extends JComponent implements MouseMotionListener, MouseListener, ActionListener, KeyListener{
 	
 	private static final long serialVersionUID = 1L;
 	private String title;
@@ -39,6 +40,12 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	BufferedImage field;
 	
 	Path[][] paths;
+	
+	boolean[] pathEnabled = {
+			true,
+			true,
+			true
+	};
 	
 	float scale;
 	
@@ -103,6 +110,10 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	
 	int[] robotNumbers;
 	
+	int robotNumberDisplayX, robotNumberDisplayY;
+	
+	Rectangle2D[] buttonBounds = new Rectangle2D[3];
+	
 	public Field(int[] robotNumbers, int width, int height, String[] files){
 		setBounds(0, 0, 5000, 5000);
 		
@@ -145,6 +156,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		window.setLocationRelativeTo(null);
 		window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addMouseMotionListener(this);
+		addMouseListener(this);
 		window.addKeyListener(this);
 		addKeyListener(this);
 		
@@ -181,21 +193,11 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		g.setFont(g.getFont().deriveFont(Font.PLAIN, ((int) (field.getHeight()*scale)/4)));
 		
 		
-		if(robotNumbers.length > 0) {
+		if(robotNumbers.length > 1) {
 			
 			int fontSize = ((int) (field.getHeight()*scale)/16);
 			
 			g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
-			
-//			{
-//				
-//				String fullMessage = robotNumbers[0] + "";
-//				
-//				g.setColor(nonAlphaColors[0]);
-//				
-//				g.drawString(fullMessage+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(fullMessage)/2, ((int) (field.getHeight()*scale / 16 * 15)));
-//			
-//			}
 			
 			for(int i=0; i < robotNumbers.length; i++) {
 				
@@ -203,7 +205,16 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 				
 				g.setColor(nonAlphaColors[i]);
 				
-				g.drawString(fullMessage+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(fullMessage)/2, ((int) (field.getHeight()*scale / 16 * 15)) + fontSize * (i-2) );
+				if(!pathEnabled[i]) {
+					g.setColor(Color.LIGHT_GRAY);
+				}
+				
+				robotNumberDisplayX = window.getWidth()/2 - g.getFontMetrics().stringWidth(fullMessage)/2;
+				robotNumberDisplayY = ((int) (field.getHeight()*scale / 16 * 15));
+				
+				g.drawString(fullMessage+"", robotNumberDisplayX, robotNumberDisplayY + fontSize * (i-2) );
+			
+				buttonBounds[i] = g.getFontMetrics().getStringBounds(fullMessage, g);
 			}
 			
 			
@@ -213,6 +224,8 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		
 		Graphics2D g2d = (Graphics2D) g;
 		for(int i = 0; i < paths.length; i++){
+			
+			if(!pathEnabled[i]) continue;
 			
 			g.setColor(colors[i]);
 			
@@ -327,6 +340,49 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 
 	@Override
 	public void keyTyped(KeyEvent e) {
+		
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		for (int i = 0; i < buttonBounds.length; i++) {
+			if (buttonBounds[i] != null) {
+				
+				int fontSize = ((int) (field.getHeight()*scale)/16);
+				
+				int height = fontSize;
+				
+				int x = robotNumberDisplayX;
+				
+				int y = robotNumberDisplayY + fontSize * (i-2) - height;
+				
+				if(e.getX() >= x && e.getX() <= x + buttonBounds[i].getWidth() && e.getY() >= y && e.getY() <= y + height) {
+					
+					pathEnabled[i] = !pathEnabled[i];
+					
+					repaint();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
 		
 	}
 }
