@@ -7,13 +7,14 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -66,9 +67,15 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 //	};
 	
 	Color[] colors = {
-			new Color(0, 255, 0, 80),
-			new Color(255, 0, 0, 80),
-			new Color(0, 0, 255, 80)
+			new Color(0, 255, 0, 120),
+			new Color(255, 0, 0, 120),
+			new Color(0, 0, 255, 120)
+	};
+	
+	Color[] nonAlphaColors = {
+			new Color(0, 255, 0),
+			new Color(255, 0, 0),
+			new Color(0, 0, 255)
 	};
 	
 	String[] locationNames = {
@@ -153,6 +160,11 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	
 	@Override
 	protected void paintComponent(Graphics g){
+		
+		Graphics2D g2 = (Graphics2D) g;
+
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
 		g.setColor(Color.white);
 		
 		g.fillRect(0, 0, window.getWidth(), window.getHeight());
@@ -160,14 +172,44 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		scale = (float) (window.getWidth()/(field.getWidth()*1.00));
 		//I know it's redundant, but its there for the future
 		g.drawImage(field, 0, 0, (int) (field.getWidth()*scale), (int) (field.getHeight()*scale), null);
-		g.setColor(Color.yellow);
+		g.setColor(Color.white);
 		for(Point p : locations){
 			g.fillRect((int) (p.x*scale)-5, (int) (p.y*scale)-5, 10, 10);
 		}
 		
 		g.setColor(Color.white);
 		g.setFont(g.getFont().deriveFont(Font.PLAIN, ((int) (field.getHeight()*scale)/4)));
-		g.drawString(window.getTitle()+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(window.getTitle())/2, ((int) (field.getHeight()*scale / 16 * 15)));
+		
+		
+		if(robotNumbers.length > 0) {
+			
+			int fontSize = ((int) (field.getHeight()*scale)/16);
+			
+			g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
+			
+//			{
+//				
+//				String fullMessage = robotNumbers[0] + "";
+//				
+//				g.setColor(nonAlphaColors[0]);
+//				
+//				g.drawString(fullMessage+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(fullMessage)/2, ((int) (field.getHeight()*scale / 16 * 15)));
+//			
+//			}
+			
+			for(int i=0; i < robotNumbers.length; i++) {
+				
+				String fullMessage = robotNumbers[i] + "";
+				
+				g.setColor(nonAlphaColors[i]);
+				
+				g.drawString(fullMessage+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(fullMessage)/2, ((int) (field.getHeight()*scale / 16 * 15)) + fontSize * (i-2) );
+			}
+			
+			
+		} else {
+			g.drawString(window.getTitle()+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(window.getTitle())/2, ((int) (field.getHeight()*scale / 16 * 15)));
+		}
 		
 		Graphics2D g2d = (Graphics2D) g;
 		for(int i = 0; i < paths.length; i++){
