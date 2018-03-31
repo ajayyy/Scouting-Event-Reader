@@ -44,13 +44,18 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 	private JSplitPane inputSplitPane3;
 	
 	Button selectRobot;
+	Button editField;
+	private JSplitPane buttonSplitPane;
+	
 	DirectoryChooser dirChooser;
 	private Button selectDir;
-	String directory = "C:\\Users\\Ajay\\git\\Scouting-Event-Reader\\src\\ca\\lakeeffect\\eventreader\\EventData";
+	String directory = "C:\\";
 	private JSplitPane splitPane;
 	private JLabel dirLabel;
 	
 	ArrayList<String> robotNumbers = new ArrayList<String>();
+	
+	ArrayList<Field> windows = new ArrayList<>();
 
 	/**
 	 * Launch the application.
@@ -78,7 +83,7 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
-		setSize(260, 240);
+		setSize(260, 265);
 		setResizable(false);
 		setTitle("Event Viewer");
 		
@@ -140,9 +145,20 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 		
 		contentPane.add(inputSplitPaneSplitPaneSplitPane, BorderLayout.CENTER);
 		
+		//buttons
 		selectRobot = new Button("Select");
-		contentPane.add(selectRobot, BorderLayout.SOUTH);
+		editField = new Button("Edit Window");
+		
+		buttonSplitPane = new JSplitPane();
+		buttonSplitPane.setDividerSize(0);
+		buttonSplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		buttonSplitPane.setDividerLocation(25);
+		buttonSplitPane.setTopComponent(selectRobot);
+		buttonSplitPane.setBottomComponent(editField);
+		
+		contentPane.add(buttonSplitPane, BorderLayout.SOUTH);
 		selectRobot.addMouseListener(this);
+		editField.addMouseListener(this);
 		
 		splitPane = new JSplitPane();
 		splitPane.setDividerSize(1);
@@ -170,6 +186,36 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 		if(e.getSource() == selectRobot){
 			selectRobot();
 		}
+		if(e.getSource() == editField){
+			editField();
+		}
+	}
+	
+	public void editField() {
+		
+		int amountChosen = 1;
+		if(!choice2.getSelectedItem().equals("None")) {
+			amountChosen += 1;
+		}
+		if(!choice3.getSelectedItem().equals("None")) {
+			amountChosen += 1;
+		}
+		
+		int[] choices = new int[amountChosen];
+		choices[0] = Integer.parseInt(choice.getSelectedItem());
+		if(amountChosen > 1) {
+			choices[1] = Integer.parseInt(choice2.getSelectedItem());
+		}
+		if(amountChosen > 2) {
+			choices[2] = Integer.parseInt(choice3.getSelectedItem());
+		}
+		
+		String[] files = new String[amountChosen];
+		for(int i=0; i < files.length; i++) {
+			files[i] = directory+"\\"+choices[i]+".csv";
+		}
+		
+		windows.get(0).init(choices, 640, 480, files, false);
 	}
 	
 	public void selectRobot() {
@@ -196,7 +242,7 @@ public class Selection extends JFrame implements MouseListener, ActionListener, 
 			files[i] = directory+"\\"+choices[i]+".csv";
 		}
 		
-		new Field(choices, 640, 480, files);
+		windows.add(new Field(choices, 640, 480, files));
 	}
 
 	public void changeDir(String directory){

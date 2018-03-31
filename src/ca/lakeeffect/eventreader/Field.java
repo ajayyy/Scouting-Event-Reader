@@ -115,6 +115,10 @@ public class Field extends JComponent implements MouseMotionListener, MouseListe
 	Rectangle2D[] buttonBounds = new Rectangle2D[3];
 	
 	public Field(int[] robotNumbers, int width, int height, String[] files){
+		init(robotNumbers, width, height, files, true);
+	}
+	
+	public void init(int[] robotNumbers, int width, int height, String[] files, boolean createWindow) {
 		setBounds(0, 0, 5000, 5000);
 		
 		if(robotNumbers.length == 1) {
@@ -131,7 +135,11 @@ public class Field extends JComponent implements MouseMotionListener, MouseListe
 		}
 		this.width = width;
 		this.height = height;
-		init();
+		
+		if(createWindow) {
+			createWindow();
+		}
+		
 		window.setVisible(true);
 		readers = new Reader[files.length];
 		for(int i=0; i < files.length; i++) {
@@ -147,7 +155,7 @@ public class Field extends JComponent implements MouseMotionListener, MouseListe
 		}
 	}
 
-	private void init() {
+	private void createWindow() {
 		window = new JFrame(title); 
 		window.setLayout(null);
 		window.add(this);
