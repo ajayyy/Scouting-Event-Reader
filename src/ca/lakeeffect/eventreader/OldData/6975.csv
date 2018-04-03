@@ -1,0 +1,19 @@
+6975:12,03 12;33;26,False,None,False,false,Did Not Try,false,false,false,1.0,kind of just bumbled around the map|c crashing onto walls,Thomas ,
+6975:23,03 14;51;24,False,None,False,false,Did Not Try,false,false,false,1.0,Did nothing in autonomous. Movement slow and finicky. Unsure what 6975 was trying; they were moving back and forth everywhere. Maybe they were defense|c  but even then|c it was very ineffective. ,Shawn Song,
+6975:30,03 16;00;28,False,None,NULL,false,Did Not Try,false,true,false,1.0,communication error|c repeatedly cut out|c nearly tipped even at minor speeds,Not Noah ,
+
+6975:30,03 16;00;55,False,None,NULL,false,Did Not Try,false,true,false,1.0,,Beckham Pope,
+
+38,1,1,1520114787696,0
+38,1,-1,1520114792928,0
+38,0,3,1520114798826,0
+38,1,1,1520114800902,0
+38,0,1,1520114829856,0
+38,0,-1,1520114842000,0
+38,2,-1,1520114844426,0
+38,0,-1,1520114920857,0
+
+41,2,3,1520116145000,0
+41,1,1,1520116214287,0
+
+45,1,1,1520118068940,0

@@ -7,13 +7,15 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -24,7 +26,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
-public class Field extends JComponent implements MouseMotionListener, ActionListener, KeyListener{
+public class Field extends JComponent implements MouseMotionListener, MouseListener, ActionListener, KeyListener{
 	
 	private static final long serialVersionUID = 1L;
 	private String title;
@@ -33,11 +35,17 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	
 	private JFrame window;
 	
-	Reader reader;
+	Reader[] readers;
 	
 	BufferedImage field;
 	
-	Path[] paths;
+	Path[][] paths;
+	
+	boolean[] pathEnabled = {
+			true,
+			true,
+			true
+	};
 	
 	float scale;
 	
@@ -65,6 +73,18 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 //			new Point(100, 200),
 //	};
 	
+	Color[] colors = {
+			new Color(0, 255, 0, 120),
+			new Color(255, 0, 0, 120),
+			new Color(0, 0, 255, 120)
+	};
+	
+	Color[] nonAlphaColors = {
+			new Color(0, 255, 0),
+			new Color(255, 0, 0),
+			new Color(0, 0, 255)
+	};
+	
 	String[] locationNames = {
 			"Ground",
 			"Top Red Portal",
@@ -88,22 +108,54 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	boolean hovering;
 	int mousex,mousey;
 	
-	public Field(String title, int width, int height, String file){
-		setBounds(0, 0, 5000, 5000);
-		this.title = title;
-		this.width = width;
-		this.height = height;
-		init();
-		window.setVisible(true);
-		reader = new Reader();
-		changeRobot(file);
+	int[] robotNumbers;
+	
+	int robotNumberDisplayX, robotNumberDisplayY;
+	
+	Rectangle2D[] buttonBounds = new Rectangle2D[3];
+	
+	public Field(int[] robotNumbers, int width, int height, String[] files){
+		init(robotNumbers, width, height, files, true);
 	}
 	
-	public void changeRobot(String path){
-		paths = reader.read(path);
+	public void init(int[] robotNumbers, int width, int height, String[] files, boolean createWindow) {
+		setBounds(0, 0, 5000, 5000);
+		
+		if(robotNumbers.length == 1) {
+			colors[0] = new Color(colors[0].getRed(), colors[0].getGreen(), colors[0].getBlue(), 255);
+		}
+		
+		this.robotNumbers = robotNumbers;
+		this.title = "";
+		for (int i=0;i<robotNumbers.length;i++) {
+			if(i != 0) {
+				this.title += ", ";
+			}
+			this.title += robotNumbers[i];
+		}
+		this.width = width;
+		this.height = height;
+		
+		if(createWindow) {
+			createWindow();
+		}
+		
+		window.setVisible(true);
+		readers = new Reader[files.length];
+		for(int i=0; i < files.length; i++) {
+			readers[i] = new Reader();
+		}
+		changeRobot(files);
+	}
+	
+	public void changeRobot(String[] paths){
+		this.paths = new Path[paths.length][];
+		for(int i=0; i < paths.length; i++) {
+			this.paths[i] = readers[i].read(paths[i]);
+		}
 	}
 
-	private void init() {
+	private void createWindow() {
 		window = new JFrame(title); 
 		window.setLayout(null);
 		window.add(this);
@@ -112,6 +164,7 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		window.setLocationRelativeTo(null);
 		window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addMouseMotionListener(this);
+		addMouseListener(this);
 		window.addKeyListener(this);
 		addKeyListener(this);
 		
@@ -127,6 +180,11 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	
 	@Override
 	protected void paintComponent(Graphics g){
+		
+		Graphics2D g2 = (Graphics2D) g;
+
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
 		g.setColor(Color.white);
 		
 		g.fillRect(0, 0, window.getWidth(), window.getHeight());
@@ -134,22 +192,55 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		scale = (float) (window.getWidth()/(field.getWidth()*1.00));
 		//I know it's redundant, but its there for the future
 		g.drawImage(field, 0, 0, (int) (field.getWidth()*scale), (int) (field.getHeight()*scale), null);
-		g.setColor(Color.green);
+		g.setColor(Color.white);
 		for(Point p : locations){
 			g.fillRect((int) (p.x*scale)-5, (int) (p.y*scale)-5, 10, 10);
 		}
 		
 		g.setColor(Color.white);
 		g.setFont(g.getFont().deriveFont(Font.PLAIN, ((int) (field.getHeight()*scale)/4)));
-		g.drawString(window.getTitle()+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(window.getTitle())/2, ((int) (field.getHeight()*scale / 16 * 15)));
 		
-		g.setColor(Color.green);
+		
+		if(robotNumbers.length > 1) {
+			
+			int fontSize = ((int) (field.getHeight()*scale)/16);
+			
+			g.setFont(g.getFont().deriveFont(Font.PLAIN, fontSize));
+			
+			for(int i=0; i < robotNumbers.length; i++) {
+				
+				String fullMessage = robotNumbers[i] + "";
+				
+				g.setColor(nonAlphaColors[i]);
+				
+				if(!pathEnabled[i]) {
+					g.setColor(Color.LIGHT_GRAY);
+				}
+				
+				robotNumberDisplayX = window.getWidth()/2 - g.getFontMetrics().stringWidth(fullMessage)/2;
+				robotNumberDisplayY = ((int) (field.getHeight()*scale / 16 * 15));
+				
+				g.drawString(fullMessage+"", robotNumberDisplayX, robotNumberDisplayY + fontSize * (i-2) );
+			
+				buttonBounds[i] = g.getFontMetrics().getStringBounds(fullMessage, g);
+			}
+			
+			
+		} else {
+			g.drawString(window.getTitle()+"", window.getWidth()/2 - g.getFontMetrics().stringWidth(window.getTitle())/2, ((int) (field.getHeight()*scale / 16 * 15)));
+		}
 		
 		Graphics2D g2d = (Graphics2D) g;
-		for(Path p : paths){
-//			if(p.startLocation == -1 || p.endLocation == -1) continue;
-			g2d.setStroke(new BasicStroke((int) (p.count/2)+1));
-			g2d.drawLine((int)(locations[p.startLocation].x*scale), (int)(locations[p.startLocation].y*scale), (int)( locations[p.endLocation].x*scale), (int)( locations[p.endLocation].y*scale));
+		for(int i = 0; i < paths.length; i++){
+			
+			if(!pathEnabled[i]) continue;
+			
+			g.setColor(colors[i]);
+			
+			for(Path p : paths[i]){
+				g2d.setStroke(new BasicStroke((int) (p.count/2)+1));
+				g2d.drawLine((int)(locations[p.startLocation].x*scale), (int)(locations[p.startLocation].y*scale), (int)( locations[p.endLocation].x*scale), (int)( locations[p.endLocation].y*scale));
+			}
 		}
 		
 		if(hovering){
@@ -194,13 +285,15 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 		info.clearData();
 		Point mouse = new Point((int)(e.getX()/scale), (int)(e.getY()/scale));
 		boolean hovering = false;
-		for(Path p : paths){
-//			System.out.println(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse))));
-			if(p.startLocation == -1 || p.endLocation==-1) continue;
-			if(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse)))<15){
-//				System.out.println(locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
-				hovering = true;
-				info.addData(new String[] {"Count","Avg. Time","Avg/Match"}, new double[] {p.count, p.averageTime, p.count/1}, new String[] {"","s",""}, locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
+		if(robotNumbers.length == 1) {
+			for(Path p : paths[0]){
+//				System.out.println(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse))));
+				if(p.startLocation == -1 || p.endLocation==-1) continue;
+				if(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse)))<15){
+//					System.out.println(locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
+					hovering = true;
+					info.addData(new String[] {"Count","Avg. Time","Avg/Match"}, new double[] {p.count, p.averageTime, p.count/1}, new String[] {"","s",""}, locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
+				}
 			}
 		}
 		for(int i = 0; i < locations.length; i++){
@@ -208,12 +301,14 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 			if(l.distance(e.getX(), e.getY())<15){
 				hovering=true;
 				int scoreSuccess = 0, scoreFail = 0, pickupSuccess = 0, pickupFail = 0;
-				for(Path p : paths){
-					if(p.endLocation == i){
-						scoreSuccess+=p.scoreSuccess;
-						scoreFail+=p.scoreFail;
-						pickupSuccess+=p.pickupSuccess;
-						pickupFail+=p.pickupFail;
+				if(robotNumbers.length == 1) {
+					for(Path p : paths[0]){
+						if(p.endLocation == i){
+							scoreSuccess+=p.scoreSuccess;
+							scoreFail+=p.scoreFail;
+							pickupSuccess+=p.pickupSuccess;
+							pickupFail+=p.pickupFail;
+						}
 					}
 				}
 				double scorePercent = 0, pickupPercent = 0;
@@ -255,6 +350,49 @@ public class Field extends JComponent implements MouseMotionListener, ActionList
 	public void keyTyped(KeyEvent e) {
 		
 	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		for (int i = 0; i < buttonBounds.length; i++) {
+			if (buttonBounds[i] != null) {
+				
+				int fontSize = ((int) (field.getHeight()*scale)/16);
+				
+				int height = fontSize;
+				
+				int x = robotNumberDisplayX;
+				
+				int y = robotNumberDisplayY + fontSize * (i-2) - height;
+				
+				if(e.getX() >= x && e.getX() <= x + buttonBounds[i].getWidth() && e.getY() >= y && e.getY() <= y + height) {
+					
+					pathEnabled[i] = !pathEnabled[i];
+					
+					repaint();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		
+	}
 }
 
 class InfoPanel{
@@ -266,11 +404,13 @@ class InfoPanel{
 	
 	NumberFormat formatter = new DecimalFormat("#0.00");     
 	
+	Color background = new Color(220, 220, 220, 255);
+	
 	public BufferedImage render(){
 		height = labels.size()*15+5;
 		BufferedImage panel = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = panel.createGraphics();
-		g.setColor(Color.lightGray);
+		g.setColor(background);
 		g.fillRect(0, 0, width, height);
 		g.setColor(Color.black);
 		for(int i = 0; i < labels.size(); i++){
