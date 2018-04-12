@@ -22,6 +22,10 @@ public class Reader {
 			return null;
 		}
 		
+		int matches = 0;
+		
+		String lastMatchNum = "";
+		
 		ArrayList<Event> events = new ArrayList<Event>();
 		while(scanner.hasNextLine()){
 			String fullLine = scanner.nextLine();
@@ -29,6 +33,11 @@ public class Reader {
 			
 			if(line.length < 5 || fullLine.contains(":")) {
 				continue;
+			}
+			
+			if (!line[0].equals(lastMatchNum)) {
+				matches++;
+				lastMatchNum = line[0];
 			}
 			
 			events.add(new Event(Integer.parseInt(line[0]), Integer.parseInt(line[1]), Integer.parseInt(line[2]) + 1, Long.parseLong(line[3]), Integer.parseInt(line[4])));

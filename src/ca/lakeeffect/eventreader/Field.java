@@ -292,7 +292,7 @@ public class Field extends JComponent implements MouseMotionListener, MouseListe
 				if(Math.abs(locations[p.startLocation].distance(locations[p.endLocation]) - (locations[p.startLocation].distance(mouse)+locations[p.endLocation].distance(mouse)))<15){
 //					System.out.println(locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
 					hovering = true;
-					info.addData(new String[] {"Count","Avg. Time","Avg/Match"}, new double[] {p.count, p.averageTime, p.count/1}, new String[] {"","s",""}, locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
+					info.addData(new String[] {"Count","Avg. Time","Avg/Match"}, new double[] {p.count, p.averageTime, p.count/p.matches}, new String[] {"","s",""}, locationNames[p.startLocation]+"=>"+locationNames[p.endLocation]);
 				}
 			}
 		}

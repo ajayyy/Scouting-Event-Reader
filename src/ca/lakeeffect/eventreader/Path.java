@@ -16,6 +16,8 @@ public class Path {
 	double pickupSuccessRate;
 	int pickupSuccess;
 	int pickupFail;
+	
+	int matches;
 
 	
 	public Path(Event first, Event second){
